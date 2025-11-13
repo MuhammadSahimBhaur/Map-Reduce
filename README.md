@@ -17,15 +17,65 @@ dan 75
 ```
 
 ## Transformation using sed/cut and mapred
-The following converts substitutes using this format `s/old/new`
+The following converts **substitutes** using this format `s/old/new`
 ```bash
 sed s/al/Al/
 ```
-The following allows us to access the second variable
+The following allows us to access the second variable **(seecond field)**:
 ```bash
 cut -f2 -d" "
 ```
 > Do note: the `d` flag is used to set a custom delimiter, the default is `TAB`.
+> For choosing two or more fields use `cut -f1,2,3`
+
+
+You can also pipe multiple mappers together as shown in the following example.
+```bash
+mapred streaming \
+  -D mapred.reduce.tasks=0 \
+  -input <path to input file>
+  -output <path to output1 file>
+  -mapper <function to be mapped to eac line>
+
+mapred streaming \
+  -D mapred.reduce.tasks=0 \
+  -input <path to output1 file> \
+  -output <path to output2 file> \
+  -mapper <function to be mapped to eac line>
+```
+
+## Hadoop streaming with mapper/reducer
+The following code counts words:
+```
+mapred streaming \
+-input words.txt \
+-output output \
+-mapper /bin/cat \
+-reducer /usr/bin/wc
+```
+Both `wc` and `cat` are shell commands but with absolute paths.
+
+## Using python with mapreduce
+We create the following python file `filter.py`:
+```py
+#!/usr/bin/env python3
+
+import sys
+
+for number in sys.stdin:
+
+if (number != "\n") and int(number) > 50:
+ print(int(number))
+```
+We change the file mode to execute the file, `chmod x+u filter.py`.
+Then we use a similar hadoop command as before:
+```bash
+mapred streaming \
+-D mapred.reduce.tasks=0 \
+-input numbers.txt\
+-output output\
+-mapper <smth like /home/bigdata/filter.py>
+```
 
 
 
